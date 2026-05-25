@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Квиз: AI и программирование</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .quiz-container {
+            background-color: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+            width: 100%;
+            max-width: 600px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #4facfe;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        h1 {
+            text-align: center;
+            color: #4facfe;
+            margin-bottom: 10px;
+        }
+        .question {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #aaa;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            padding: 15px;
+            border: 2px solid #4facfe;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .option:hover {
+            background-color: #0f1a2b;
+        }
+        .correct {
+            background-color: #2a7d4f;
+            border-color: #2a7d4f;
+            color: white;
+        }
+        .incorrect {
+            background-color: #a63434;
+            border-color: #a63434;
+            color: white;
+        }
+        .next-btn {
+            display: none;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #4facfe;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .next-btn:hover {
+            background-color: #3a8cce;
+        }
+        .result-screen {
+            text-align: center;
+            font-size: 18px;
+            display: none;
+        }
+        .result-screen .score {
+            font-size: 24px;
+            color: #4facfe;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Квиз: AI и программирование</h1>
+        <div class="header">
+            <div id="question-counter">Вопрос 1 / 5</div>
+            <div id="score-counter">Очки: 0</div>
+        </div>
+        <div id="quiz">
+            <div class="question" id="question">Что такое вайбкодинг?</div>
+            <div class="options" id="options">
+                <div class="option" data-correct="false">A) Программирование под музыку</div>
+                <div class="option" data-correct="true">B) Описываешь намерение - AI пишет код - оцениваешь результат</div>
+                <div class="option" data-correct="false">C) Новый язык программирования</div>
+                <div class="option" data-correct="false">D) Метод отладки через консоль</div>
+            </div>
+        </div>
+        <button class="next-btn" id="next-btn">Следующий вопрос</button>
+        <div class="result-screen" id="result-screen">
+            <h2>Результат</h2>
+            <div class="score">Правильных ответов: <span id="score">0</span> из 5</div>
+            <button class="next-btn" id="restart-btn">Пройти снова</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Что такое вайбкодинг?",
+                options: [
+                    "A) Программирование под музыку",
+                    "B) Описываешь намерение - AI пишет код - оцениваешь результат",
+                    "C) Новый язык программирования",
+                    "D) Метод отладки через консоль"
+                ],
+                correct: 1
+            },
+            {
+                question: "Что делает модель GPT?",
+                options: [
+                    "A) Генерирует изображения",
+                    "B) Распознаёт речь",
+                    "C) Генерирует текст",
+                    "D) Анализирует данные"
+                ],
+                correct: 2
+            },
+            {
+                question: "Что означает API в разработке?",
+                options: [
+                    "A) Advanced Programming Interface",
+                    "B) Application Programming Interface",
+                    "C) Automated Program Integration",
+                    "D) All Purpose Instrument"
+                ],
+                correct: 1
+            },
+            {
+                question: "Для чего используется JavaScript в браузере?",
+                options: [
+                    "A) Для хранения данных",
+                    "B) Для стилизации страницы",
+                    "C) Для создания структуры страницы",
+                    "D) Для интерактивности и динамики"
+                ],
+                correct: 3
+            },
+            {
+                question: "Что такое машинное обучение?",
+                options: [
+                    "A) Программирование на машинах",
+                    "B) Обучение программистов",
+                    "C) Алгоритмы, которые учатся на данных",
+                    "D) Использование компьютеров для обучения"
+                ],
+                correct: 2
+            }
+        ];
+
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const nextButton = document.getElementById('next-btn');
+        const resultScreen = document.getElementById('result-screen');
+        const scoreElement = document.getElementById('score');
+        const restartButton = document.getElementById('restart-btn');
+        const questionCounter = document.getElementById('question-counter');
+        const scoreCounter = document.getElementById('score-counter');
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        function updateCounters() {
+            questionCounter.textContent = `Вопрос ${currentQuestion + 1} / ${questions.length}`;
+            scoreCounter.textContent = `Очки: ${score}`;
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            questionElement.textContent = q.question;
+            optionsElement.innerHTML = '';
+            q.options.forEach((option, index) => {
+                const div = document.createElement('div');
+                div.classList.add('option');
+                div.textContent = option;
+                div.addEventListener('click', () => selectAnswer(index));
+                optionsElement.appendChild(div);
+            });
+            answered = false;
+            nextButton.style.display = 'none';
+            updateCounters();
+        }
+
+        function selectAnswer(selectedIndex) {
+            if (answered) return;
+            answered = true;
+
+            const options = optionsElement.querySelectorAll('.option');
+            const q = questions[currentQuestion];
+
+            options.forEach((opt, index) => {
+                opt.classList.remove('correct', 'incorrect');
+                if (index === q.correct) {
+                    opt.classList.add('correct');
+                } else if (index === selectedIndex && selectedIndex !== q.correct) {
+                    opt.classList.add('incorrect');
+                }
+            });
+
+            if (selectedIndex === q.correct) {
+                score++;
+                scoreCounter.textContent = `Очки: ${score}`;
+            }
+
+            nextButton.style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            quiz.style.display = 'none';
+            nextButton.style.display = 'none';
+            resultScreen.style.display = 'block';
+            scoreElement.textContent = score;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            resultScreen.style.display = 'none';
+            quiz.style.display = 'block';
+            loadQuestion();
+        }
+
+        nextButton.addEventListener('click', nextQuestion);
+        restartButton.addEventListener('click', restartQuiz);
+
+        // Инициализация
+        loadQuestion();
+    </script>
+</body>
+</html>
